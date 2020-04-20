@@ -19,10 +19,11 @@ public class Homework_3 {
         private static final char AI_DOT = 'O';
         private static final char EMPTY_DOT = '.';
 
+
         // init field
         private static void initMap() {
-            fieldSizeY = 5;
-            fieldSizeX = 5;
+            fieldSizeY = 10;
+            fieldSizeX = 10;
             field = new char[fieldSizeY][fieldSizeX];
             for (int y = 0; y < fieldSizeY; y++) {
                 for (int x = 0; x < fieldSizeX; x++) {
@@ -78,39 +79,86 @@ public class Homework_3 {
 
         // check win
         private static boolean checkWin(char c) {
-            boolean checkHor;
-            boolean checkVer;
-            boolean checkDia1;
-            boolean checkDia2;
-            int winCountHor;
-            int winCountVer;
-            int winCountDia1;
-            int winCountDia2;
 
-            for (int i = 0; i < fieldSizeY; i++){
-               checkHor = true;
-               checkVer = true;
-               checkDia1 = true;
-               checkDia2 = true;
-               winCountHor = 0;
-               winCountVer = 0;
-               winCountDia1 = 0;
-               winCountDia2 = 0;
-               for (int j = 0; j < fieldSizeX; j++){
-                   checkHor = checkHor && (field [i][j] == c);
-                   if (checkHor) winCountHor++;
-                   checkVer = checkVer && (field [j][i] == c);
-                   if (checkVer) winCountVer++;
-                   checkDia1 = checkDia1 && (field [j][j] == c);
-                   if (checkDia1) winCountDia1++;
-                   checkDia2 = checkDia2 && (field [j][fieldSizeX-1-j] == c);
-                   if (checkDia2) winCountDia2++;
-                   if (winCountHor == maxWinCount || winCountVer == maxWinCount || winCountDia1 == maxWinCount || winCountDia2 == maxWinCount){
-                       return true;
-                   }
+            for (int y = 0; y < fieldSizeY; y++){
+               for (int x = 0; x < fieldSizeX; x++){
+                   if (checkHorLine(y, x, c, maxWinCount) ||
+                       checkVertLine(y, x, c, maxWinCount) ||
+                       checkDiaUpLine(y, x, c, maxWinCount) ||
+                       checkDiaDownLine(y, x, c, maxWinCount))
+                   return true;
                }
             }
         return false;
+        }
+
+        // prevent win check
+        private static boolean preventWinCheck() {
+            for (int i = 0; i < fieldSizeY; i++){
+                for (int j = 0; j < fieldSizeX; j++){
+                    char c = field [i][j];
+                    for (int y = 0; y < fieldSizeY; y++){
+                        for (int x = 0; x < fieldSizeX; x++){
+                            if (isEmptyCell(j, i)) {
+                                field[i][j] = HUMAN_DOT;
+                                if (checkHorLine(y, x, HUMAN_DOT, maxWinCount) ||
+                                    checkVertLine(y, x, HUMAN_DOT, maxWinCount) ||
+                                    checkDiaUpLine(y, x, HUMAN_DOT, maxWinCount) ||
+                                    checkDiaDownLine(y, x, HUMAN_DOT, maxWinCount)) {
+                                    field[i][j] = AI_DOT;
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    field [i][j] = c;
+                }
+            }
+            return false;
+        }
+
+        //checkHorWin
+        private static boolean checkHorLine (int y, int x, char c, int maxWinCount){
+            if (x + maxWinCount <= fieldSizeX){
+                for (int i = x; i < (x + maxWinCount); i++) {
+                    if (field [y][i] != c){
+                        return false;
+                    }
+                } return true;
+            } else return false;
+        }
+
+        //checkVertWin
+        private static boolean checkVertLine (int y, int x, char c, int maxWinCount){
+            if (y + maxWinCount <= fieldSizeY){
+                for (int i = y; i < (y + maxWinCount); i++) {
+                    if (field [i][x] != c){
+                        return false;
+                    }
+                } return true;
+            } else return false;
+        }
+
+        //checkDiaUpWin
+        private static boolean checkDiaUpLine (int y, int x, char c, int maxWinCount){
+            if (y - maxWinCount >= 0 && x + maxWinCount <= fieldSizeX){
+                for (int i = y, j = x; i > (y - maxWinCount) && j < (x + maxWinCount); i--, j++) {
+                    if (field [i][j] != c){
+                        return false;
+                    }
+                } return true;
+            } else return false;
+        }
+
+        //checkDiaDownWin
+        private static boolean checkDiaDownLine (int y, int x, char c, int maxWinCount){
+            if (y + maxWinCount <= fieldSizeY && x + maxWinCount <= fieldSizeX){
+                for (int i = y, j = x; i < (y + maxWinCount) && j < (x + maxWinCount); i++, j++) {
+                    if (field [i][j] != c){
+                        return false;
+                    }
+                } return true;
+            } else return false;
         }
 
         // check draw
@@ -131,7 +179,7 @@ public class Homework_3 {
                     humanTurn();
                     printMap();
                     if (gameChecks(HUMAN_DOT, "Human win!")) break;
-                    aiTurn();
+                    if(!preventWinCheck()) aiTurn();
                     printMap();
                     if (gameChecks(AI_DOT, "AI win!")) break;
                 }
@@ -140,10 +188,12 @@ public class Homework_3 {
                     break;
             }
             SCANNER.close();
+/*
             int[] arr = {1,2,3,4,5,6,7};
             arraySum("Hello", 0, arr);
             arraySum("Hello", 0, new int[] {1,2,3,4,5,6,7});
             arraySum("Hello", 0, 1,2,3,4,5,6,7);
+*/
         }
 
         private static int arraySum(String s, int b, int... a) {
